@@ -9,11 +9,18 @@ class ZINBLoss(nn.Module):
         super(ZINBLoss, self).__init__()
 
     def forward(self, x, mean, disp, pi, scale_factor=1.0, ridge_lambda=0.0):
-        eps = 1e-10
+        eps = 1e-5
         scale_factor = scale_factor[:, None]
         mean = mean * scale_factor
         
         t1 = torch.lgamma(disp+eps) + torch.lgamma(x+1.0) - torch.lgamma(x+disp+eps)
+        # t1 = torch.min(t1, torch.Tensor([300]).to(t1.device))
+        # t1 = torch.max(t1, torch.Tensor([-100]).to(t1.device))
+        # print(torch.max(t1), torch.min(t1))
+        if torch.sum(torch.isinf(t1))>0:
+            dummy = torch.zeros(1).squeeze().to(x.device)
+            dummy.requires_grad_()
+            return dummy
         t2 = (disp+x) * torch.log(1.0 + (mean/(disp+eps))) + (x * (torch.log(disp+eps) - torch.log(mean+eps)))
         nb_final = t1 + t2
 
@@ -27,6 +34,10 @@ class ZINBLoss(nn.Module):
             result += ridge
         
         result = torch.mean(result)
+        if torch.isnan(result):
+            dummy = torch.zeros(1).squeeze().to(x.device)
+            dummy.requires_grad_()
+            return dummy
         return result
 
 
