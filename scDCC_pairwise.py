@@ -32,7 +32,7 @@ if __name__ == "__main__":
     parser.add_argument('--n_pairwise', default=0, type=int)
     parser.add_argument('--n_pairwise_error', default=0, type=float)
     parser.add_argument('--batch_size', default=256, type=int)
-    parser.add_argument('--data_file', default='../data/10X_PBMC_select_2100.h5')
+    parser.add_argument('--data_file', default='data/Small_Datasets/10X_PBMC_select_2100.h5')
     parser.add_argument('--maxiter', default=2000, type=int)
     parser.add_argument('--pretrain_epochs', default=300, type=int)
     parser.add_argument('--gamma', default=1., type=float,

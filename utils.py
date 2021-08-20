@@ -27,10 +27,35 @@ def cluster_acc(y_true, y_pred):
     w = np.zeros((D, D), dtype=np.int64)
     for i in range(y_pred.size):
         w[y_pred[i], y_true[i]] += 1
-    from sklearn.utils.linear_assignment_ import linear_assignment
+    from scipy.optimize import linear_sum_assignment as linear_assignment
     ind = linear_assignment(w.max() - w)
+    ind = np.stack(ind, axis=1)
     return sum([w[i, j] for i, j in ind]) * 1.0 / y_pred.size
 
+
+def generate_random_pair_by_label(cell_type_label_by_index, label_cell_indx, num_pairs):
+    ml_indices = []
+    cl_indices = []
+
+    candidates = list(range(len(label_cell_indx)))
+    while num_pairs > 0:
+        tmp = random.sample(candidates, 2)
+        if tmp in ml_indices or tmp in cl_indices:
+            continue
+        if cell_type_label_by_index[label_cell_indx[tmp[0]]] == cell_type_label_by_index[label_cell_indx[tmp[1]]]:
+            ml_indices.append(tmp)
+        else:
+            cl_indices.append(tmp)
+        num_pairs -= 1
+    ml_indices = np.asarray(ml_indices)
+    cl_indices = np.asarray(cl_indices)
+
+    ml_ind1 = ml_indices[:,0]
+    ml_ind2 = ml_indices[:,1]
+    cl_ind1 = cl_indices[:,0]
+    cl_ind2 = cl_indices[:,1]
+
+    return ml_ind1, ml_ind2, cl_ind1, cl_ind2
 
 def generate_random_pair(y, label_cell_indx, num, error_rate=0):
     """
