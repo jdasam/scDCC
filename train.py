@@ -25,7 +25,7 @@ if __name__ == "__main__":
     parser.add_argument('--n_pairwise', default=20000, type=int)
     parser.add_argument('--n_pairwise_error', default=0, type=float)
     parser.add_argument('--batch_size', default=256, type=int)
-    parser.add_argument('--data_file', default='../data/CITE_PBMC/10X_PBMC_select_2100.h5')
+    parser.add_argument('--data_file', default='data/CITE_PBMC/CITE_PBMC_counts_top2000.h5')
     parser.add_argument('--maxiter', default=2000, type=int)
     parser.add_argument('--pretrain_epochs', default=300, type=int)
     parser.add_argument('--gamma', default=1., type=float,
@@ -36,6 +36,8 @@ if __name__ == "__main__":
                         help='coefficient of cannot-link loss')
     parser.add_argument('--update_interval', default=1, type=int)
     parser.add_argument('--tol', default=0.001, type=float)
+    parser.add_argument('--sigma', default=2.4, type=float)
+
     parser.add_argument('--ae_weights', default=None)
     parser.add_argument('--save_dir', default=Path('results/test2/'), type=Path)
     parser.add_argument('--ae_weight_file', default='AE_weights_p0_1.pth.tar')
@@ -101,10 +103,8 @@ if __name__ == "__main__":
     # print("Must link paris: %d" % ml_ind1.shape[0])
     # print("Cannot link paris: %d" % cl_ind1.shape[0])
 
-    sd = 2.5
-
     model = scDCC(input_dim=adata.n_vars, z_dim=32, n_clusters=args.n_clusters, 
-                encodeLayer=[256, 64], decodeLayer=[64, 256], sigma=sd, gamma=args.gamma,
+                encodeLayer=[256, 64], decodeLayer=[64, 256], sigma=args.sigma, gamma=args.gamma,
                 ml_weight=args.ml_weight, cl_weight=args.ml_weight, save_dir=args.save_dir).cuda()
     
     print(str(model))
@@ -112,7 +112,7 @@ if __name__ == "__main__":
     t0 = time()
     if args.ae_weights is None:
         model.pretrain_autoencoder(x=adata.X, X_raw=adata.raw.X, size_factor=adata.obs.size_factors, 
-                                batch_size=args.batch_size, epochs=args.pretrain_epochs, ae_weights=args.ae_weight_file)
+                                batch_size=args.batch_size, epochs=args.pretrain_epochs, ae_weights=args.save_dir/args.ae_weight_file)
     else:
         if os.path.isfile(args.ae_weights):
             print("==> loading checkpoint '{}'".format(args.ae_weights))
